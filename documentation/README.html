@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>README for db_mysqli.class.php</title>
+    </head>
+    <body>
+<h2>CREDITS:</h2>
+<p>This class is made by unreal4u (Camilo Sperberg), however, the initial idea isn't mine, so I would like to thank Mertol Kasanan, this class is based on his work.<br />
+See <a href="http://www.phpclasses.org/browse/package/5191.html">http://www.phpclasses.org/browse/package/5191.html</a> for details.</p>
+
+<h2>ABOUT THIS CLASS:</h2>
+<h3>In a glinch:</h3>
+<ul><li>It receives parametrized and simple SQL queries.</li>
+    <li>It creates 3 arrays: one containing all data, and another one that contains some statistics. Optionally, it logs all errors into another array and also into an valid XML file.</li>
+    <li>The DB connection made is singleton, that means only one connection is made for all your queries, even if you have more than 1 instance. The connection is established on demand, not when you initialize the class.</li>
+    <li>Have you some really long queries? It doesn't matter: you can cache them in W3C valid XML file.</li>
+</ul>
+<h3>Detailed:</h3>
+<p>This package implements a MySQL database access wrapper using the MySQLi extension.<br><br>
+
+There is class that manages MySQL database access connections so only one connection is established during the same PHP script execution.<br><br>
+
+Another class implements other database access functions like executing queries with prepared queries, measuring the time the queries take to execute and the memory usage, retrieving query results into arrays, the number of result rows, last inserted record identifier and log executed queries to a valid XML log file or directly into your page.<br><br>
+
+If the query takes just too long, you can cache the query result into an XML file, and you can also handle errors. <br><br>
+
+This package has been extensivily tested with xDebug, APC and Suhosin so that no errors are present.</p>
+
+<h2>USAGE:</h2>
+<ul><li>This class was made with simplicity, speed and security in mind. Executing a query is easy: it are just 3 simple steps:<br>
+
+<pre>include('config.php'); // Please see below for explanation
+include('db_mysqli.class.php');
+$dbLink = new db_mysqli();
+$id_user = 23;
+$username = 'unreal4u';
+$aResult = $dbLink-&gt;query('SELECT id,username FROM users WHERE id = ? AND username = ?',$id_user,$username);</pre></li>
+    <li>Congratulations! <code>$aResult</code> haves the result of your query!</li>
+    <li>Now you can do anything you want with the array, one of the easiest methods to go trough it is a foreach:<br>
+<pre>foreach($aResult AS $a) {
+  echo 'The id of the user named '.$a['username'].' is: '.$a['id'].'&lt;br /&gt;';
+}</pre>
+
+    </li>
+    <li>In case of large queries, don't forget to unset the results in order to save PHP's memory for later:<br><br><code>unset($aResult);</code><br><br></li>
+    <li><strong>Please see index.php for more options and advanced usage</strong></li>
+</ul>
+
+<h2>PENDING:</h2>
+<ul>
+  <li>(3.2.0) Parametrized support for MySQL's bit field.</li>
+  <li>(3.3.0) Multiquery support</li>
+</ul>
+
+<h2>config.php:</h2>
+<blockquote><pre>
+define('MYSQL_HOST', 'localhost');    // your db's host
+define('MYSQL_PORT', 3306);           // your db's port
+define('MYSQL_USER', 'db_mysqli_v4'); // your db's username
+define('MYSQL_PASS', 'db_mysqli_v4'); // your db's password
+define('MYSQL_NAME', 'db_mysqli_v4'); // your db's database name
+define('MYSQL_CHAR', 'utf8');         // the used charset
+</pre></blockquote>
+
+<h2>VERSION HISTORY:</h2>
+<ul><li>2.0.0 : 
+    <ul><li>Original file with some changes, now using constants instead of variables to make the connection</li>
+
+        <li>Fixed some minor bugs in case of no results of query, time calculation and variable initialization</li>
+    </ul>
+</li></ul>
+<ul><li>2.0.1 : 
+    <ul><li>Added live statistics, it displays:
+        <ul><li>Memory usage</li>
+       	    <li>Time</li>
+	    <li>Queries executed</li>
+        </ul>
+
+    </li></ul>
+</li></ul>
+<ul><li>2.1.0b: Some mayor changes: (that never became final release)
+    <ul><li>Now supporting XML log with SimpleXML.</li>
+        <li>Added data array size: displays total data size in bytes.</li>
+        <li>XML now logs also:
+            <ul><li>Number of results</li>
+                <li>Data array size</li>
+    	        <li>Number of queries</li>
+
+	    </ul>
+	</li>
+	<li>Live statistics now displays data array size and the query with its binding.</li>
+    </ul>
+</li></ul>
+<ul><li>2.1.1 : 
+    <ul><li>Fixed some bugs with live statistics</li>
+        <li>Fixed some minor bugs related with the array data size</li>
+    </ul>
+
+</li></ul>
+<ul><li>2.1.2 :
+    <ul><li>Error handling is now little better, however it will be improved further.</li>
+        <li>Data array size is now optional: it is just TOO slow. I'll see if I can improve it later.</li>
+        <li>Fixed minor bug with XML logging related to number of results</li>
+    </ul>
+</li></ul>
+<ul><li>2.1.5 - RC: 
+    <ul><li>Now the class supports caching</li>
+        <li>Proper error handling is now available.</li>
+
+        <li>Improved logging system a little more. It is a lot clearer now, it has it's own function.</li>
+    </ul>
+</li></ul>
+<ul><li>2.1.5:
+    <ul><li>Fixed all sort of bugs.</li>
+        <li>Improved cache: it was faster to read the XML file with SimpleXML and structure it with PHP.</li>
+        <li>Added some more error exceptions. (Couldn't connect to DB, couldn't create cache file, etc)</li>
+    </ul>
+
+</li></ul>
+<ul><li>2.1.6:
+    <ul><li>Improved error handling.</li>
+        <li>Added some more error exceptions. (Mainly possible file problem issues)</li>
+        <li>Added a new constant: DBPORT, in order to connect to a specific port different than the default.</li>
+        <li>Fixed a little bug in DB_Connect with variable name. (Was private static, should have been only private)</li>
+	<li>Special functions __call, __get, etc are now private.</li>
+	<li>DB_SHOW_ERRORS now working properly. (NOTE: <code>if(DB_SHOW_ERRORS) <strong>!=</strong> if(DB_SHOW_ERRORS === TRUE)</code>)</li>
+
+	<li>Class is now valid for PHP &gt;= 5.1.6.</li>
+    </ul>
+</li></ul>
+<ul><li>2.1.7:
+    <ul><li>Fixed little inconsistency when webserver's charset was different from mysql's charset.</li></ul>
+</li></ul>
+<ul><li>2.2.0:
+    <ul><li>Better error management: The class will no longer fail when a certain table or field doesn't exist.</li>
+        <li><code>$dbLiveStats</code> now shows you the error.</li>
+
+        <li>Compatible (in strict mode) with PHP 5.3. All magic methods are now public.</li>
+        <li>Changed file name from <code>db.class.php</code> to <code>mysql.class.php</code>.</li>
+        <li>Changed basic class name from <code>DB()</code> to <code>DB_mysql()</code>.</li>
+
+        <li>Better XML validation. (<a href="http://www.phpclasses.org/discuss/package/5812/thread/4/">Thanks Valentino Lauciani</a>!)</li>
+        <li>Fixed some minor errors on this README xD</li>
+    </ul>
+</li></ul>
+<ul><li>3.0.0:
+  <ul><li>Runs on PHP5.3 on Windows and Linux without problems. <a href="http://www.phpclasses.org/discuss/package/5812/thread/5/">Thanks to Hugo Simon</a>.</li>
+  <li>The class is now compatible with PHPDocumentor, so technical reference should be easier.</li>
+  <li><code>$dbLiveStats</code> and <code>$dbErrors</code> are now public variables, so no more global variables</li>
+  </ul>
+</li></ul>
+<ul><li>3.1.0:
+  <ul><li>Support for transactions!</li>
+  <li>Connection is now made on demand, that means that if the class is instanciated but not used, no connection to MySQL will be made.</li>
+  <li>Better documentation</li>
+  <li>Full revision of methods, added some new ones, optimized some old ones</li>
+  <li>This file is under SVN control now :)</li>
+  </ul>
+</li></ul>
+<ul><li>4.0.0:
+    <ul><li>No longer is XML-based cache used, cacheManager class is now in charge of doing all the job!</li>
+    <li>Better exception handling</li>
+    </ul>
+</li></ul>
+<ul><li>4.0.1:
+    <ul><li>Constant name cleanup</li>
+        <li>Updated documentation with new changes</li>
+        <li>It is now possible to connect to more than 1 database, follow instructions in documentation</li>
+    </ul>
+</li></ul>
+
+    </body>
+</html>
