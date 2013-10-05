@@ -5,7 +5,7 @@ namespace unreal4u;
 /**
  * This class will throw this type of exceptions
  *
- * @package db_mysqli
+ * @package dbmysqli
  * @author Camilo Sperberg - http://unreal4u.com/
  */
 class databaseException extends \ErrorException {

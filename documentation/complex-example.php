@@ -1,10 +1,10 @@
 <?php
 
 include('../src/unreal4u/config.php');
-include('../src/unreal4u/db_mysqli.php');
+include('../src/unreal4u/dbmysqli.php');
 
 try {
-    $db = new unreal4u\db_mysqli();
+    $db = new unreal4u\dbmysqli();
     //$db->keepLiveLog = true;
     //$db->supressErrors = true;
 

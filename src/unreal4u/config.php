@@ -5,7 +5,7 @@ namespace unreal4u;
 /**
  * Config file for db_mysqli.class.php
  *
- * @package db_mysqli
+ * @package dbmysqli
  * @author Camilo Sperberg - http://unreal4u.com/
  */
 

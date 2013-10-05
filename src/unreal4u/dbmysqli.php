@@ -7,12 +7,12 @@ include(dirname(__FILE__).'/auxiliar_classes.php');
 /**
  * Extended MySQLi Parametrized DB Class
  *
- * db_mysqli.class.php, a MySQLi database access wrapper
+ * dbmysqli.php, a MySQLi database access wrapper
  * Original idea from Mertol Kasanan, http://www.phpclasses.org/browse/package/5191.html
  * Optimized, tuned and fixed by unreal4u (Camilo Sperberg)
  *
- * @package db_mysqli
- * @version 4.1.1
+ * @package dbmysqli
+ * @version 4.1.2
  * @author Camilo Sperberg, http://unreal4u.com/
  * @author Mertol Kasanan
  * @license BSD License
@@ -22,12 +22,12 @@ include(dirname(__FILE__).'/auxiliar_classes.php');
  * @method mixed[] insert_id() insert_id($query, $args) Returns the insert id of the query
  * @method mixed[] query() query($query, $args) Returns false if query could not be executed, resultset otherwise
  */
-class db_mysqli {
+class dbmysqli {
     /**
      * The version of this class
      * @var string
      */
-    private $classVersion = '4.1.1';
+    private $classVersion = '4.1.2';
 
     /**
      * Contains the actual DB connection instance
@@ -218,7 +218,7 @@ class db_mysqli {
      * @return string
      */
     public function __toString() {
-        return 'db_mysqli.class.php v'.$this->classVersion.' by Camilo Sperberg - http://unreal4u.com/';
+        return 'dbmysqli.class.php v'.$this->classVersion.' by Camilo Sperberg - http://unreal4u.com/';
     }
 
     /**

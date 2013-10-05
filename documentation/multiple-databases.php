@@ -1,10 +1,10 @@
 <?php
 
 include('../src/unreal4u/config.php');
-include('../src/unreal4u/db_mysqli.php');
+include('../src/unreal4u/dbmysqli.php');
 
 try {
-    $db1 = new unreal4u\db_mysqli();
+    $db1 = new unreal4u\dbmysqli();
     print('Version connection 1: '.$db1->version());
 } catch (\Exception $e) {
     print('::1:: '.$e->getMessage());
@@ -13,7 +13,7 @@ try {
 print('<br />');
 
 try {
-    $db2 = new unreal4u\db_mysqli();
+    $db2 = new unreal4u\dbmysqli();
     $db2->registerConnection('db_mysqli_v401');
     print('Version connection 2: '.$db2->version());
 } catch (\Exception $e) {
@@ -23,7 +23,7 @@ try {
 print('<br />');
 
 try {
-    $db3 = new unreal4u\db_mysqli();
+    $db3 = new unreal4u\dbmysqli();
     $db3->registerConnection('mysql', 'localhost', 'root');
     print('Version connection 3: '.$db3->version());
 } catch (\Exception $e) {

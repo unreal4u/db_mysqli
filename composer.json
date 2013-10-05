@@ -1,5 +1,5 @@
 {
-    "name": "unreal4u/db_mysqli",
+    "name": "unreal4u/dbmysqli",
     "description": "A mysqli wrapper",
     "license": "MIT",
     "authors": [

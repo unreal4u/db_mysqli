@@ -32,8 +32,8 @@ Basic usage
 ----------
 
 <pre>include('config.php'); // Please see below for explanation
-include('db_mysqli.class.php');
-$dbLink = new db_mysqli();
+include('dbmysqli.php');
+$dbLink = new dbmysqli();
 $id_user = 23;
 $username = 'unreal4u';
 $aResult = $dbLink->query('SELECT id,username FROM users WHERE id = ? AND username = ?',$id_user,$username);</pre>
@@ -59,14 +59,14 @@ Add this to your composer.json:
        }
    ],
    "require": {
-       "unreal4u/db_mysqli": "4.1.*"
+       "unreal4u/dbmysqli": "4.1.*"
    }
 }
 </pre>
 
 Pending ---------
 * Multiquery support.
-* Register multiple connections
+* Better naming convention to include other RDSMs later on
 
 Version History
 ----------
@@ -150,12 +150,17 @@ Version History
     * Support for multi-connections
     * Better documentation
     * Code cleanup and some minor improvements
+
 * 4.1.0:
     * Made class compatible with composer.phar and PSR-0 autoloader standards
     * Some minor fixes in documentation and code
+
 * 4.1.1:
     * Fixes
     * Better documentation
+
+* 4.1.2:
+    * Totally forgot about PSR-0 underscore standard. The class is now refactored to wipe out the usage of underscore in the class's name
 
 Contact the author
 -------
