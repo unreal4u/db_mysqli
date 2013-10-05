@@ -1,5 +1,11 @@
 <?php
 
+/*
+ * This example file has been temporarily disabled because it relies on the fact that we have some more classes loaded,
+ * which must be transformed to the new way of implementing dependencies
+ */
+
+/*
 include('../config.php');
 include('../db_mysqli.class.php');
 
@@ -58,3 +64,4 @@ printf('New table creation: %f<br />', $bench->getDiff('newTable', 'time'));
 printf('Exception time: %f<br />', $bench->getDiff('databaseException', 'time'));
 printf('Version time: %f<br />', $bench->getDiff('databaseVersion', 'time'));
 echo '</pre>';
+*/

@@ -1,9 +1,9 @@
 <?php
 
-include('../config.php');
-include('../db_mysqli.class.php');
+include('../src/unreal4u/config.php');
+include('../src/unreal4u/db_mysqli.class.php');
 
-$db = new \u4u\db_mysqli();
+$db = new unreal4u\db_mysqli();
 $db->supressErrors = true;
 $db->keepLiveLog = true;
 echo $db->version();

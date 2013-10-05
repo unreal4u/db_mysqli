@@ -1,6 +1,6 @@
 <?php
 
-namespace u4u;
+namespace unreal4u;
 
 /**
  * Config file for db_mysqli.class.php

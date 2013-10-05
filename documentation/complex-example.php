@@ -1,10 +1,10 @@
 <?php
 
-include('../config.php');
-include('../db_mysqli.class.php');
+include('../src/unreal4u/config.php');
+include('../src/unreal4u/db_mysqli.class.php');
 
 try {
-    $db = new \u4u\db_mysqli();
+    $db = new unreal4u\db_mysqli();
     //$db->keepLiveLog = true;
     //$db->supressErrors = true;
 
@@ -44,10 +44,10 @@ try {
         $db->query('INSERT INTO t1 (string_valued, int_valued, bool_valued, string_null_valued, int_null_valued, bool_null_valued, float_valued, float_null_valued, datetime_valued, datetime_null_valued, timestamp_valued, timestamp_null_valued) VALUES (?,?,?,?,?,?,?,?,?,?,NOW(),?)',
                                     'e',           null,       null,        null,               null,            null,             null,         null,              null,            null,                                   null
         );
-    } catch (\u4u\queryException $e) {
+    } catch (unreal4u\queryException $e) {
         print('We have captured a query exception!');
         var_dump($e->getMessage());
-    } /*
+    }
     // Disable throwing query exceptions again
     $db->throwQueryExceptions = false;
 
@@ -79,11 +79,6 @@ try {
     if ($db->num_rows == 0) {
         print('<pre>num_rows is 0</pre>');
     }
-*/
-    print("-------------------------- SELECT * FROM t1 WHERE string_valued = 'z' (:string_valued) ---------");
-    $resultSet = $db->query('SELECT * FROM t1 WHERE string_valued = :string_valued', array(':string_valued' => 'a'));
-    var_dump($resultSet);
-
 
     $db->query('DROP TABLE t1');
 
@@ -93,7 +88,7 @@ try {
     print("-------------------------- dbErrors --------------------------");
     var_dump($db->dbErrors);
 
-} catch (\u4u\databaseException $e) {
+} catch (unreal4u\databaseException $e) {
     print('Error: <strong>'.$e->getMessage().'</strong><br />File: '.$e->getFile().':'.$e->getLine());
 }
 

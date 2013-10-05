@@ -1,6 +1,6 @@
 <?php
 
-namespace u4u;
+namespace unreal4u;
 
 include(dirname(__FILE__).'/auxiliar_classes.php');
 
@@ -12,7 +12,7 @@ include(dirname(__FILE__).'/auxiliar_classes.php');
  * Optimized, tuned and fixed by unreal4u (Camilo Sperberg)
  *
  * @package db_mysqli
- * @version 4.0.1
+ * @version 4.1.0
  * @author Camilo Sperberg, http://unreal4u.com/
  * @author Mertol Kasanan
  * @license BSD License
@@ -27,7 +27,7 @@ class db_mysqli {
      * The version of this class
      * @var string
      */
-    private $classVersion = '4.0.1';
+    private $classVersion = '4.1.0';
 
     /**
      * Contains the actual DB connection instance
@@ -133,8 +133,8 @@ class db_mysqli {
      * @param boolean $inTransaction Whether to begin a transaction, defaults to false
      */
     public function __construct($inTransaction=false) {
-        if (version_compare(PHP_VERSION, '5.1.5', '<')) {
-            $this->throwException('Sorry, class only valid for PHP &gt; 5.1.5, please consider upgrading to the latest version', __LINE__);
+        if (version_compare(PHP_VERSION, '5.3.0', '<')) {
+            $this->throwException('Sorry, class only valid for PHP &gt; 5.3.0, please consider upgrading to the latest version', __LINE__);
         }
         if ($inTransaction === true) {
             $this->begin_transaction();
@@ -156,7 +156,7 @@ class db_mysqli {
      * @param string $method The method to call
      * @param array $arg_array The data, such as the query. Can also by empty
      */
-    public function __call($method, array $arg_array) {
+    public function __call($method, array $arg_array=null) {
         // Sets our own error handler (Defined in auxiliar_classes.php)
         $this->enableCustomErrorHandler();
 
@@ -442,7 +442,7 @@ class db_mysqli {
                 $this->logError($sqlQuery, $this->db->errno, 'fatal', $this->db->error);
             }
 
-            if (is_array($arg_array)) {
+            if (!empty($arg_array)) {
                 array_unshift($arg_array, $types);
                 if (empty($this->error)) {
                     if (!$executeQuery = @call_user_func_array(array($this->stmt, 'bind_param'), $this->makeValuesReferenced($arg_array))) {
@@ -708,10 +708,13 @@ class db_mysqli {
      * @param array $arr The array that creates a referenced copy
      * @return array A referenced copy of the original array
      */
-    private function makeValuesReferenced($arr) {
-        $refs = array();
-        foreach ($arr as $key => $value) {
-            $refs[$key] = &$arr[$key];
+    private function makeValuesReferenced(array $arr=null) {
+        $refs = null;
+        if (!empty($arr)) {
+            $refs = array();
+            foreach ($arr as $key => $value) {
+                $refs[$key] = &$arr[$key];
+            }
         }
         return $refs;
     }

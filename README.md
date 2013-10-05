@@ -4,7 +4,7 @@ db_mysqli.class.php
 Credits
 --------
 
-This class is made by unreal4u (Camilo Sperberg). [http://unreal4u.com/](unreal4u.com). However, the initial idea isn't 
+This class is made by unreal4u (Camilo Sperberg). [http://unreal4u.com/](unreal4u.com). However, the initial idea isn't
 mine, so I would like to thank Mertol Kasanan, this class is based on his work.
 See [http://www.phpclasses.org/browse/package/5191.html](http://www.phpclasses.org/browse/package/5191.html) for details.
 
@@ -54,11 +54,11 @@ Pending
 Version History
 ----------
 
-* 2.0.0 : 
+* 2.0.0 :
     * Original file with some changes, now using constants instead of variables to make the connection
     * Fixed some minor bugs in case of no results of query, time calculation and variable initialization
 
-* 2.0.1 : 
+* 2.0.1 :
     * Added live statistics, it displays:
         * Memory usage
         * Time
@@ -73,7 +73,7 @@ Version History
         * Number of queries
     * Live statistics now displays data array size and the query with its binding.
 
-* 2.1.1 : 
+* 2.1.1 :
     * Fixed some bugs with live statistics
     * Fixed some minor bugs related with the array data size
 
@@ -82,7 +82,7 @@ Version History
     * Data array size is now optional: it is just TOO slow. I'll see if I can improve it later.
     * Fixed minor bug with XML logging related to number of results
 
-* 2.1.5 - RC: 
+* 2.1.5 - RC:
     * Now the class supports caching.
     * Proper error handling is now available.
     * Improved logging system a little more. It is a lot clearer now, it has it's own function.
@@ -133,6 +133,9 @@ Version History
     * Support for multi-connections
     * Better documentation
     * Code cleanup and some minor improvements
+* 4.1.0:
+    * Made class compatible with composer.phar and PSR-0 autoloader standards
+    * Some minor fixes in documentation and code
 
 Contact the author
 -------

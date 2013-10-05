@@ -1,12 +1,12 @@
 <?php
 
-include('../config.php');
-include('../db_mysqli.class.php');
+include('../src/unreal4u/config.php');
+include('../src/unreal4u/db_mysqli.class.php');
 
 try {
-    $db = new \u4u\db_mysqli();
+    $db = new unreal4u\db_mysqli();
     $db->throwQueryExceptions = true;
-} catch (\u4u\databaseException $e) {
+} catch (unreal4u\databaseException $e) {
     exit($e->getMessage());
 }
 
@@ -17,23 +17,23 @@ try {
     );
 
     var_dump('The insertId is: '.$insertId);
-} catch (\u4u\databaseException $e) {
+} catch (unreal4u\databaseException $e) {
     var_dump($e->getMessage());
 }
 
 try {
     $db->query();
-} catch (\u4u\databaseException $e) {
+} catch (unreal4u\databaseException $e) {
     var_dump('Database exception: '.$e->getMessage());
-} catch (\u4u\queryException $e) {
+} catch (unreal4u\queryException $e) {
     var_dump('Query exception: '.$e->getMessage());
 }
 
 try {
     $db->query('INSERT INTO b (nonexistant) VALUES (?)', 22);
-} catch (\u4u\databaseException $e) {
+} catch (unreal4u\databaseException $e) {
     var_dump('Database exception: '.$e->getMessage());
-} catch (\u4u\queryException $e) {
+} catch (unreal4u\queryException $e) {
     var_dump('Query exception: '.$e->getMessage());
 }
 
