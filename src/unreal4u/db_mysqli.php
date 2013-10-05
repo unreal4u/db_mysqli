@@ -12,7 +12,7 @@ include(dirname(__FILE__).'/auxiliar_classes.php');
  * Optimized, tuned and fixed by unreal4u (Camilo Sperberg)
  *
  * @package db_mysqli
- * @version 4.1.0
+ * @version 4.1.1
  * @author Camilo Sperberg, http://unreal4u.com/
  * @author Mertol Kasanan
  * @license BSD License
@@ -27,7 +27,7 @@ class db_mysqli {
      * The version of this class
      * @var string
      */
-    private $classVersion = '4.1.0';
+    private $classVersion = '4.1.1';
 
     /**
      * Contains the actual DB connection instance

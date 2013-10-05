@@ -7,7 +7,7 @@
 
 /*
 include('../config.php');
-include('../db_mysqli.class.php');
+include('../db_mysqli.php');
 
 include('../../stable-versions.php');
 

@@ -46,8 +46,25 @@ $aResult = $dbLink->query('SELECT id,username FROM users WHERE id = ? AND userna
 * In case of large queries, don't forget to unset the results in order to save PHP's memory for later: `unset($aResult);`
 * **Please see index.php for more options and advanced usage**
 
-Pending
+Including with composer
 ---------
+
+Add this to your composer.json:
+<pre>
+{
+   "repositories": [
+       {
+           "type": "vcs",
+           "url": "https://github.com/unreal4u/db_mysqli"
+       }
+   ],
+   "require": {
+       "unreal4u/db_mysqli": "4.1.*"
+   }
+}
+</pre>
+
+Pending ---------
 * Multiquery support.
 * Register multiple connections
 
@@ -136,6 +153,9 @@ Version History
 * 4.1.0:
     * Made class compatible with composer.phar and PSR-0 autoloader standards
     * Some minor fixes in documentation and code
+* 4.1.1:
+    * Fixes
+    * Better documentation
 
 Contact the author
 -------

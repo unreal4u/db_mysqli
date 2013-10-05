@@ -1,7 +1,7 @@
 <?php
 
 include('../src/unreal4u/config.php');
-include('../src/unreal4u/db_mysqli.class.php');
+include('../src/unreal4u/db_mysqli.php');
 
 try {
     $db1 = new unreal4u\db_mysqli();
