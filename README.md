@@ -1,4 +1,4 @@
-db_mysqli.class.php
+db_mysqli.php
 ======
 
 Credits
@@ -31,9 +31,9 @@ This package has been extensivily tested with xDebug, APC and Suhosin so that no
 Basic usage
 ----------
 
-<pre>include('config.php'); // Please see below for explanation
-include('dbmysqli.php');
-$dbLink = new dbmysqli();
+<pre>include('src/unreal4u/config.php'); // Please see below for explanation
+include('src/unreal4u/dbmysqli.php');
+$dbLink = new unreal4u\dbmysqli();
 $id_user = 23;
 $username = 'unreal4u';
 $aResult = $dbLink->query('SELECT id,username FROM users WHERE id = ? AND username = ?',$id_user,$username);</pre>
@@ -59,14 +59,23 @@ Add this to your composer.json:
        }
    ],
    "require": {
-       "unreal4u/dbmysqli": "4.1.*"
+       "unreal4u/dbmysqli": "@stable"
    }
 }
+</pre>
+
+Now you can instantiate a new dbmysqli class by executing:
+
+<pre>
+require('vendor/autoload.php');
+
+$rutverifier = new unreal4u\dbmysqli();
 </pre>
 
 Pending ---------
 * Multiquery support.
 * Better naming convention to include other RDSMs later on
+* Convert to PDO (to support :tag type associations)
 
 Version History
 ----------
@@ -161,6 +170,10 @@ Version History
 
 * 4.1.2:
     * Totally forgot about PSR-0 underscore standard. The class is now refactored to wipe out the usage of underscore in the class's name
+
+* 4.1.3:
+    * Better documentation
+    * Year change
 
 Contact the author
 -------
