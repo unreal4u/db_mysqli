@@ -12,11 +12,11 @@ include(dirname(__FILE__).'/auxiliar_classes.php');
  * Optimized, tuned and fixed by unreal4u (Camilo Sperberg)
  *
  * @package dbmysqli
- * @version 4.1.2
+ * @version 4.1.3
  * @author Camilo Sperberg, http://unreal4u.com/
  * @author Mertol Kasanan
  * @license BSD License
- * @copyright 2009 - 2013 Camilo Sperberg
+ * @copyright 2009 - 2014 Camilo Sperberg
  *
  * @method int num_rows() num_rows() Returns the number of results from the query
  * @method mixed[] insert_id() insert_id($query, $args) Returns the insert id of the query
@@ -27,7 +27,7 @@ class dbmysqli {
      * The version of this class
      * @var string
      */
-    private $classVersion = '4.1.2';
+    private $classVersion = '4.1.3';
 
     /**
      * Contains the actual DB connection instance
@@ -218,7 +218,7 @@ class dbmysqli {
      * @return string
      */
     public function __toString() {
-        return 'dbmysqli.class.php v'.$this->classVersion.' by Camilo Sperberg - http://unreal4u.com/';
+        return basename(__FILE__).' v'.$this->classVersion.' by Camilo Sperberg - http://unreal4u.com/';
     }
 
     /**
