@@ -1,4 +1,4 @@
-db_mysqli.php
+dbmysqli.php
 ======
 
 Credits
@@ -52,12 +52,6 @@ Including with composer
 Add this to your composer.json:
 <pre>
 {
-   "repositories": [
-       {
-           "type": "vcs",
-           "url": "https://github.com/unreal4u/db_mysqli"
-       }
-   ],
    "require": {
        "unreal4u/dbmysqli": "@stable"
    }
