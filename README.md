@@ -174,6 +174,9 @@ Version History
 * 4.1.3:
     * Better documentation
     * Year change
+* 5.0.0:
+    * [BC] Result array is now an SplFixedArray, uses less memory and should be a bit faster as well
+    * [BC] More types supported: float and DateTime objects are now returned for those type of data's
 
 Contact the author
 -------

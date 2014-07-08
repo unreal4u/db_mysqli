@@ -12,7 +12,7 @@ include(dirname(__FILE__).'/auxiliar_classes.php');
  * Optimized, tuned and fixed by unreal4u (Camilo Sperberg)
  *
  * @package dbmysqli
- * @version 4.1.3
+ * @version 5.0.0
  * @author Camilo Sperberg, http://unreal4u.com/
  * @author Mertol Kasanan
  * @license BSD License
@@ -27,7 +27,7 @@ class dbmysqli {
      * The version of this class
      * @var string
      */
-    private $classVersion = '4.1.3';
+    private $classVersion = '5.0.0';
 
     /**
      * Contains the actual DB connection instance
@@ -503,7 +503,6 @@ class dbmysqli {
         $result = false;
 
         if (!$this->error) {
-            $result = array();
             if ($this->stmt->error) {
                 $this->logError(null, $this->stmt->errno, 'fatal', $this->stmt->error);
                 return false;
@@ -518,6 +517,7 @@ class dbmysqli {
                     $dataTypes[$field->name] = $field->type;
                     $params[] =& $rows[$field->name];
                 }
+                $result = array();
 
                 call_user_func_array(array(
                     $this->stmt,
@@ -528,13 +528,42 @@ class dbmysqli {
                     foreach ($rows as $key => $val) {
                         $c[$key] = $val;
                         // Fix for boolean data types: hard-detect these and set them explicitely as boolean
-                        // @TODO Check if date types get interpreted correctly, ideal would be use PHP's DateTime object
-                        if ($dataTypes[$key] == 16) {
-                            $c[$key] = (bool)$val;
+                        // Complete list: http://www.php.net/manual/en/mysqli-result.fetch-fields.php#113949
+                        switch ($dataTypes[$key]) {
+                            case 7: // timestamp
+                            case 10: // date
+                            case 11: // time
+                            case 12: // datetime
+                                if ($val !== null) {
+                                    $c[$key] = new \DateTime($val);
+                                }
+                                break;
+                            case 16: // bit
+                                $c[$key] = (bool)$val;
+                                break;
+                            case 4: // float
+                            case 5: // double
+                            case 246: // decimal
+                                $c[$key] = floatval($val);
+                                break;
+                            // Following are just as quick reference for later (maybe)
+                            #case 1: // tinyint
+                            #case 2: // smallint
+                            #case 3: // int
+                            #case 8: // bigint
+                            #case 9: // mediumint
+                            #case 13: // year
+                            #case 252: // Text related field
+                            #case 253: // varchar
+                            #case 254: // char
+                            #default:
+                            #    break;
                         }
                     }
                     $result[] = $c;
                 }
+
+                $result = \SplFixedArray::fromArray($result);
             } elseif ($this->stmt->errno == 0) {
                 $result = true;
             } else {
