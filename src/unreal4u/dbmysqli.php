@@ -3,6 +3,8 @@
 namespace unreal4u;
 
 include(dirname(__FILE__).'/auxiliar_classes.php');
+include(dirname(__FILE__).'/exceptions/database.php');
+include(dirname(__FILE__).'/exceptions/query.php');
 
 /**
  * Extended MySQLi Parametrized DB Class
@@ -18,8 +20,8 @@ include(dirname(__FILE__).'/auxiliar_classes.php');
  * @license BSD License
  * @copyright 2009 - 2014 Camilo Sperberg
  *
- * @method int num_rows() num_rows() Returns the number of results from the query
- * @method mixed[] insert_id() insert_id($query, $args) Returns the insert id of the query
+ * @method int numRows() numRows() Returns the number of results from the query
+ * @method mixed[] insertId() insertId($query, $args) Returns the insert id of the query
  * @method mixed[] query() query($query, $args) Returns false if query could not be executed, resultset otherwise
  */
 class dbmysqli {
@@ -27,61 +29,61 @@ class dbmysqli {
      * The version of this class
      * @var string
      */
-    private $classVersion = '5.0.0';
+    private $_classVersion = '5.0.0';
 
     /**
      * Contains the actual DB connection instance
      * @var object
      */
-    private $db = null;
+    private $_db = null;
 
     /**
      * Contains the prepared statement
      * @var object
      */
-    private $stmt = null;
+    private $_stmt = null;
 
     /**
      * Internal indicator indicating whether we are connected to the database or not. Defaults to false
      * @var boolean
      */
-    private $isConnected = false;
+    private $_isConnected = false;
 
     /**
      * Internal statistics collector
      * @var array
      */
-    private $stats = array();
+    private $_stats = array();
 
     /**
      * Saves the last known error. Can be boolean false or string with error otherwise. Defaults to false
      * @var mixed[]
      */
-    private $error = false;
+    private $_error = false;
 
     /**
      * Internal indicator to know whether we are in a transaction or not. Defaults to false
      * @var boolean
      */
-    private $inTransaction = false;
+    private $_inTransaction = false;
 
     /**
      * Internal indicator to know whether we should rollback the current transaction or not. Defaults to false
      * @var boolean
      */
-    private $rollback = false;
+    private $_rollback = false;
 
     /**
      * Counter of failed connections to the database. Defaults to 0
      * @var int
      */
-    private $failedConnectionsCount = 0;
+    protected $_failedConnectionsCount = 0;
 
     /**
-     * Provides a flag for knowing if we are in our own custom handler or not. Defaults to false
-     * @var boolean
+     * The number of maximum failed attempts trying to connect to the database. Defaults to 10
+     * @var int
      */
-    private $isWithinCustomErrorHandler = false;
+    public $failedConnectionsTreshold = 10;
 
     /**
      * Keep an informational array with all executed queries. Defaults to false
@@ -104,22 +106,10 @@ class dbmysqli {
     public $dbErrors = array();
 
     /**
-     * Whether to disable throwing exceptions. Defaults to false
-     * @var boolean
-     */
-    public $supressErrors = false;
-
-    /**
      * Whether to throw errors on invalid queries. Defaults to false
      * @var boolean
      */
     public $throwQueryExceptions = false;
-
-    /**
-     * The number of maximum failed attempts trying to connect to the database. Defaults to 10
-     * @var int
-     */
-    public $failedConnectionsTreshold = 10;
 
     /**
      * Indicator for number of executed queries. Defaults to 0
@@ -133,11 +123,8 @@ class dbmysqli {
      * @param boolean $inTransaction Whether to begin a transaction, defaults to false
      */
     public function __construct($inTransaction=false) {
-        if (version_compare(PHP_VERSION, '5.3.0', '<')) {
-            $this->throwException('Sorry, class only valid for PHP &gt; 5.3.0, please consider upgrading to the latest version', __LINE__);
-        }
         if ($inTransaction === true) {
-            $this->begin_transaction();
+            $this->beginTransaction();
         }
     }
 
@@ -145,8 +132,8 @@ class dbmysqli {
      * Ends a transaction if needed committing remaining changes
      */
     public function __destruct() {
-        if ($this->isConnected === true OR $this->inTransaction === true) {
-            $this->end_transaction();
+        if ($this->_isConnected === true || $this->_inTransaction === true) {
+            $this->endTransaction();
         }
     }
 
@@ -157,40 +144,34 @@ class dbmysqli {
      * @param array $arg_array The data, such as the query. Can also by empty
      */
     public function __call($method, array $arg_array=null) {
-        // Sets our own error handler (Defined in auxiliar_classes.php)
-        $this->enableCustomErrorHandler();
-
-        $this->error = false;
+        $this->_error = false;
 
         // Some custom statistics
-        $this->stats = array(
+        $this->_stats = array(
             'time'   => microtime(true),
             'memory' => memory_get_usage(),
         );
 
         switch ($method) {
-            case 'num_rows':
-            case 'insert_id':
+            case 'numRows':
+            case 'insertId':
             case 'query':
                 $this->executedQueries++;
-                $this->execute_query($arg_array);
+                $this->_executeQuery($arg_array);
 
                 if ($method == 'query') {
-                    $result = $this->execute_result_array($arg_array);
+                    $result = $this->_executeResultArray($arg_array);
                 } else {
-                    $resultInfo = $this->execute_result_info($arg_array);
+                    $resultInfo = $this->_executeResultInfo($arg_array);
                     $result = $resultInfo[$method];
                 }
             break;
             default:
-                $result = 'Method not supported!';
+                $result = sprintf('Method not supported!');
             break;
         }
 
-        $this->logStatistics($this->stats, $arg_array, $result, $this->error);
-
-        // Restore whatever error handler we had before calling this class
-        $this->restoreErrorHandler();
+        $this->_logStatistics($arg_array, $result);
 
         // Finally, return our result
         return $result;
@@ -199,14 +180,14 @@ class dbmysqli {
     /**
      * Magic get method. Will always return the number of rows
      *
-     * @param string $v Any identifier supported by @link $this->execute_result_info()
-     * @return array Returns an array with the requested index (supported by execute_result_info)
+     * @param string $v Any identifier supported by @link $this->_executeResultInfo()
+     * @return array Returns an array with the requested index (supported by _executeResultInfo)
      */
     public function __get($v='') {
-        $resultInfo = $this->execute_result_info();
+        $resultInfo = $this->_executeResultInfo();
 
         if (!isset($resultInfo[$v])) {
-            $resultInfo[$v] = 'Method not supported!';
+            $resultInfo[$v] = sprintf('Method not supported!');
         }
 
         return $resultInfo[$v];
@@ -218,7 +199,7 @@ class dbmysqli {
      * @return string
      */
     public function __toString() {
-        return basename(__FILE__).' v'.$this->classVersion.' by Camilo Sperberg - http://unreal4u.com/';
+        return basename(__FILE__).' v'.$this->_classVersion.' by Camilo Sperberg - http://unreal4u.com/';
     }
 
     /**
@@ -258,16 +239,16 @@ class dbmysqli {
      *
      * @return boolean Returns whether we are or not in a transaction
      */
-    public function begin_transaction($databaseName='', $host='', $username='', $passwd='', $port=0) {
-        if ($this->inTransaction === false) {
+    public function beginTransaction($databaseName='', $host='', $username='', $passwd='', $port=0) {
+        if ($this->_inTransaction === false) {
             if ($this->registerConnection($databaseName, $host, $username, $passwd, $port)) {
-                $this->inTransaction = true;
+                $this->_inTransaction = true;
                 $this->throwQueryExceptions = true;
-                $this->db->autocommit(false);
+                $this->_db->autocommit(false);
             }
         }
 
-        return $this->inTransaction;
+        return $this->_inTransaction;
     }
 
     /**
@@ -275,20 +256,20 @@ class dbmysqli {
      *
      * @return boolean Returns whether we are or not in a transaction
      */
-    public function end_transaction() {
-        if ($this->inTransaction === true) {
-            if ($this->rollback === false) {
-                $this->db->commit();
+    public function endTransaction() {
+        if ($this->_inTransaction === true) {
+            if ($this->_rollback === false) {
+                $this->_db->commit();
             } else {
-                $this->db->rollback();
-                $this->rollback = false;
+                $this->_db->rollback();
+                $this->_rollback = false;
                 $result = false;
             }
-            $this->db->autocommit(true);
-            $this->inTransaction = false;
+            $this->_db->autocommit(true);
+            $this->_inTransaction = false;
         }
 
-        return $this->inTransaction;
+        return $this->_inTransaction;
     }
 
     /**
@@ -309,8 +290,7 @@ class dbmysqli {
     public function registerConnection($databaseName='', $host='', $username='', $passwd='', $port=0) {
         $return = false;
 
-        if ($this->isConnected === false) {
-            $this->enableCustomErrorHandler();
+        if ($this->_isConnected === false) {
             if (empty($host)) {
                 $host = DB_MYSQLI_HOST;
             }
@@ -331,11 +311,10 @@ class dbmysqli {
                 $port = DB_MYSQLI_PORT;
             }
 
-            $this->connectToDatabase($host, $username, $passwd, $databaseName, $port);
-            $this->restoreErrorHandler();
+            $this->_connectToDatabase($host, $username, $passwd, $databaseName, $port);
         }
 
-        return $this->isConnected;
+        return $this->_isConnected;
     }
 
     /**
@@ -343,26 +322,30 @@ class dbmysqli {
      *
      * @return boolean Returns value indicating whether we are connected or not
      */
-    private function connectToDatabase($host, $username, $passwd, $database, $port) {
-        if ($this->isConnected === false) {
-            if ($this->failedConnectionsCount < $this->failedConnectionsTreshold) {
+    private function _connectToDatabase($host, $username, $passwd, $database, $port) {
+        if ($this->_isConnected === false) {
+            if ($this->_failedConnectionsCount < $this->failedConnectionsTreshold) {
                 try {
+                    mysqli_report(MYSQLI_REPORT_STRICT);
                     // Always capture all errors from the singleton connection
                     $db_connect = mysql_connect::getInstance($host, $username, $passwd, $database, $port);
-                    $this->db = $db_connect->db;
-                    $this->isConnected = true;
-                } catch (databaseException $e) {
+                    $this->_db = $db_connect->db;
+                    $this->_isConnected = true;
+                } catch (\mysqli_sql_exception $e) {
+                    var_dump('inside here.....');
                     // Log the error in our internal error collector and re-throw the exception
-                    $this->failedConnectionsCount++;
-                    $this->logError(null, 0, 'fatal', $e->getMessage());
-                    $this->throwException($e->getMessage(), $e->getLine());
+                    $this->_failedConnectionsCount++;
+                    mysqli_report(MYSQLI_REPORT_OFF);
+                    $this->_logError(null, 0, 'fatal', $e->getMessage());
+                    $this->_throwException($e->getMessage(), $e->getLine());
                 }
+                mysqli_report(MYSQLI_REPORT_OFF);
             } else {
-                $this->throwException('Too many attempts to connect to database, not trying anymore', __LINE__);
+                $this->_throwException('Too many attempts to connect to database, not trying anymore', __LINE__);
             }
         }
 
-        return $this->isConnected;
+        return $this->_isConnected;
     }
 
     /**
@@ -379,7 +362,7 @@ class dbmysqli {
      * @param array $arg_array All values that the query will be handling
      * @return array Returns an array with a string of types and another one with the corrected values
      */
-    protected function castValues(array $arg_array=null) {
+    protected function _castValues(array $arg_array=null) {
         $types = '';
         if (!empty($arg_array)) {
             foreach ($arg_array as $v) {
@@ -422,31 +405,31 @@ class dbmysqli {
      * @param $arg_array array Contains the binded values
      * @return boolean Whether we could execute the query or not
      */
-    private function execute_query(array $arg_array=null) {
+    private function _executeQuery(array $arg_array=null) {
         $executeQuery = false;
 
         if ($this->registerConnection()) {
             $sqlQuery = array_shift($arg_array);
 
-            $tempArray = $this->castValues($arg_array);
+            $tempArray = $this->_castValues($arg_array);
             $types     = $tempArray['types'];
             $arg_array = $tempArray['arg_array'];
             unset($tempArray);
 
-            if (isset($this->stmt)) {
-                unset($this->stmt);
+            if (isset($this->_stmt)) {
+                $this->_stmt = null;
             }
 
-            $this->stmt = $this->db->prepare($sqlQuery);
-            if (!is_object($this->stmt)) {
-                $this->logError($sqlQuery, $this->db->errno, 'fatal', $this->db->error);
+            $this->_stmt = $this->_db->prepare($sqlQuery);
+            if (!is_object($this->_stmt)) {
+                $this->_logError($sqlQuery, $this->_db->errno, 'fatal', $this->_db->error);
             }
 
             if (!empty($arg_array)) {
                 array_unshift($arg_array, $types);
-                if (empty($this->error)) {
-                    if (!$executeQuery = @call_user_func_array(array($this->stmt, 'bind_param'), $this->makeValuesReferenced($arg_array))) {
-                        $this->logError($sqlQuery, $this->stmt->errno, 'fatal', 'Failed to bind. Do you have equal parameters for all the \'?\'?');
+                if (empty($this->_error)) {
+                    if (!$executeQuery = @call_user_func_array(array($this->_stmt, 'bind_param'), $this->_makeValuesReferenced($arg_array))) {
+                        $this->_logError($sqlQuery, $this->_stmt->errno, 'fatal', 'Failed to bind. Do you have equal parameters for all the \'?\'?');
                         $executeQuery = false;
                     }
                 }
@@ -456,11 +439,11 @@ class dbmysqli {
                 }
             }
 
-            if ($executeQuery AND is_object($this->stmt)) {
-                $this->stmt->execute();
-                $this->stmt->store_result();
-            } elseif (!$this->error) {
-                $this->logError($sqlQuery, 0, 'non-fatal', 'General error: Bad query or no query at all');
+            if ($executeQuery AND is_object($this->_stmt)) {
+                $this->_stmt->execute();
+                $this->_stmt->store_result();
+            } elseif (!$this->_error) {
+                $this->_logError($sqlQuery, 0, 'non-fatal', 'General error: Bad query or no query at all');
             }
         }
 
@@ -473,21 +456,21 @@ class dbmysqli {
      * @param array $arg_array Contains the binded values
      * @return array Can return affected rows, number of rows or last id inserted.
      */
-    private function execute_result_info(array $arg_array=null) {
+    private function _executeResultInfo(array $arg_array=null) {
         $result = array();
 
-        if (!$this->error) {
-            if ($this->db->affected_rows > 0)
-                $num_rows = $this->db->affected_rows;
+        if (!$this->_error) {
+            if ($this->_db->affected_rows > 0)
+                $numRows = $this->_db->affected_rows;
             else {
-                if (isset($this->db->num_rows)) {
-                    $num_rows = $this->db->num_rows;
+                if (isset($this->_db->num_rows)) {
+                    $numRows = $this->_db->num_rows;
                 } else {
-                    $num_rows = 0;
+                    $numRows = 0;
                 }
             }
-            $result['num_rows'] = $num_rows;
-            $result['insert_id'] = $this->db->insert_id;
+            $result['numRows'] = $numRows;
+            $result['insertId'] = $this->_db->insert_id;
         }
 
         return $result;
@@ -499,16 +482,16 @@ class dbmysqli {
      * @param array $arg_array
      * @return mixed Returns the array with data, false if there was an error present or int with errno if an error at this stage happens
      */
-    private function execute_result_array(array $arg_array) {
+    private function _executeResultArray(array $arg_array) {
         $result = false;
 
-        if (!$this->error) {
-            if ($this->stmt->error) {
-                $this->logError(null, $this->stmt->errno, 'fatal', $this->stmt->error);
+        if (!$this->_error) {
+            if ($this->_stmt->error) {
+                $this->_logError(null, $this->_stmt->errno, 'fatal', $this->_stmt->error);
                 return false;
             }
 
-            $result_metadata = $this->stmt->result_metadata();
+            $result_metadata = $this->_stmt->result_metadata();
             if (is_object($result_metadata)) {
                 $rows = array();
                 $fields = $result_metadata->fetch_fields();
@@ -520,11 +503,11 @@ class dbmysqli {
                 $result = array();
 
                 call_user_func_array(array(
-                    $this->stmt,
+                    $this->_stmt,
                     'bind_result'
                 ), $params);
 
-                while ($this->stmt->fetch()) {
+                while ($this->_stmt->fetch()) {
                     foreach ($rows as $key => $val) {
                         $c[$key] = $val;
                         // Fix for boolean data types: hard-detect these and set them explicitely as boolean
@@ -564,54 +547,14 @@ class dbmysqli {
                 }
 
                 $result = \SplFixedArray::fromArray($result);
-            } elseif ($this->stmt->errno == 0) {
+            } elseif ($this->_stmt->errno == 0) {
                 $result = true;
             } else {
-                $result = $this->stmt->errno;
+                $result = $this->_stmt->errno;
             }
         }
 
         return $result;
-    }
-
-    /**
-     * Enables our own intern error handler
-     *
-     * @link http://php.net/manual/en/function.set-error-handler.php Documentation on returned values
-     * @link http://www.tyrael.hu/2011/06/26/performance-of-error-handling-in-php/ Benchmark on set_error_handler
-     *
-     * Conclusion: (...) the overhead of having a custom error handler is almost negligible if it isn’t called. (...) if
-     * you have an error and a custom error handler which gets executed, that yields for a ~10X performance loss,
-     * regardless of using the suppression operator or not.
-     *
-     * AKA: If your queries do have a lot of errors, then this will slow things down. Otherwise, you can capture them
-     * and do whatever you want, such as logging them or mailing the faulty queries to yourself.
-     *
-     * @return mixed Returns whatever value set_error_handler returns or false if custom error handler is already set
-     */
-    private function enableCustomErrorHandler() {
-        $return = false;
-        if ($this->isWithinCustomErrorHandler === false) {
-            $this->isWithinCustomErrorHandler = true;
-            $return = set_error_handler(array('\\'.__NAMESPACE__.'\\databaseErrorHandler', 'handleError'));
-        }
-
-        return $return;
-    }
-
-    /**
-     * Restores the previous setted error handler
-     *
-     * @return boolean Returns true if error handler has been restored or false if no custom error handler had been previously set
-     */
-    private function restoreErrorHandler() {
-        $return = false;
-        if ($this->isWithinCustomErrorHandler === true) {
-            $this->isWithinCustomErrorHandler = false;
-            $return = restore_error_handler();
-        }
-
-        return $return;
     }
 
     /**
@@ -620,14 +563,9 @@ class dbmysqli {
      * @param string $msg The string to print within the exception
      * @param int $line The line in which the exception ocurred
      * @throws databaseException
-     * @return boolean Returns always false (only when supressErrors is active)
      */
-    protected function throwException($msg='', $line=0) {
-        if (empty($this->supressErrors)) {
-            throw new databaseException($msg, $line, __FILE__);
-        }
-
-        return false;
+    protected function _throwException($msg='', $line=0) {
+        throw new exceptions\database($msg, $line, __FILE__);
     }
 
     /**
@@ -638,12 +576,8 @@ class dbmysqli {
      * @param int $mysqlErrno
      * @throws queryException
      */
-    protected function throwQueryException($query='', $mysqlErrorString='', $mysqlErrno=0) {
-        if (!empty($this->throwQueryExceptions)) {
-            throw new queryException($query, $mysqlErrorString, $mysqlErrno);
-        }
-
-        return false;
+    protected function _throwQueryException($query='', $mysqlErrorString='', $mysqlErrno=0) {
+        throw new exceptions\query($query, $mysqlErrorString, $mysqlErrno);
     }
 
     /**
@@ -655,14 +589,14 @@ class dbmysqli {
      * @param string $error The error description
      * @return boolean Always returns true.
      */
-    private function logError($query, $errno, $type='non-fatal', $error=null) {
+    private function _logError($query, $errno, $type='non-fatal', $error=null) {
         if (empty($error)) {
-            $complete_error = '(not specified)';
+            $completeError = '(not specified)';
         } else if ($type == 'non-fatal') {
-            $complete_error = '[NOTICE] ' . $error;
+            $completeError = '[NOTICE] ' . $error;
         } else {
-            $complete_error = '[ERROR] ' . $error;
-            $this->rollback = true;
+            $completeError = '[ERROR] ' . $error;
+            $this->_rollback = true;
         }
 
         $this->dbErrors[] = array(
@@ -670,12 +604,12 @@ class dbmysqli {
             'query_number' => $this->executedQueries,
             'errno'        => $errno,
             'type'         => $type,
-            'error'        => $complete_error
+            'error'        => $completeError
         );
 
         if ($type == 'fatal') {
-            $this->error = '[' . $errno . '] ' . $error;
-            $this->throwQueryException($query, $error, $errno);
+            $this->_error = '[' . $errno . '] ' . $error;
+            $this->_throwQueryException($query, $error, $errno);
         }
 
         return true;
@@ -684,43 +618,41 @@ class dbmysqli {
     /**
      * Function that executes after each query
      *
-     * @param array $stats
      * @param array $arg_array
      * @param array $result
-     * @param mixed[] $error
      * @return boolean Returns true if logentry could be made, false otherwise
      */
-    private function logStatistics(array $stats, array $arg_array, $result, $error) {
+    private function _logStatistics(array $arg_array, $result) {
         $return = false;
         if ($this->keepLiveLog === true) {
             $stats = array(
-                'memory' => memory_get_usage() - $stats['memory'],
-                'time'   => number_format(microtime(true) - $stats['time'], 5, ',', '.'),
+                'memory' => memory_get_usage() - $this->_stats['memory'],
+                'time'   => number_format(microtime(true) - $this->_stats['time'], 5, ',', '.'),
             );
 
-            if ($error == false) {
+            if ($this->_error == false) {
                 $errorString = 'FALSE';
             } else {
                 $errorString = 'TRUE';
             }
 
             $inTransaction = 'FALSE';
-            if ($this->inTransaction === true) {
+            if ($this->_inTransaction === true) {
                 $inTransaction = 'TRUE';
             }
 
-            $resultInfo = $this->execute_result_info($arg_array);
+            $resultInfo = $this->_executeResultInfo($arg_array);
             $query      = reset($arg_array);
-            if (!isset($resultInfo['num_rows'])) {
-                $resultInfo['num_rows'] = 0;
+            if (!isset($resultInfo['numRows'])) {
+                $resultInfo['numRows'] = 0;
             }
 
             $this->dbLiveStats[] = array(
                 'query'              => $query,
-                'number_results'     => $resultInfo['num_rows'],
+                'number_results'     => $resultInfo['numRows'],
                 'time'               => $stats['time'] . ' (seg)',
                 'memory'             => $stats['memory'] . ' (bytes)',
-                'error'              => $error,
+                'error'              => $this->_error,
                 'within_transaction' => $inTransaction,
             );
 
@@ -737,7 +669,7 @@ class dbmysqli {
      * @param array $arr The array that creates a referenced copy
      * @return array A referenced copy of the original array
      */
-    private function makeValuesReferenced(array $arr=null) {
+    private function _makeValuesReferenced(array $arr=null) {
         $refs = null;
         if (!empty($arr)) {
             $refs = array();
