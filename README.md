@@ -36,13 +36,13 @@ include('src/unreal4u/dbmysqli.php');
 $dbLink = new unreal4u\dbmysqli();
 $id_user = 23;
 $username = 'unreal4u';
-$aResult = $dbLink->query('SELECT id,username FROM users WHERE id = ? AND username = ?',$id_user,$username);</pre>
-* Congratulations! `$aResult` has the result of your query!
-* Now you can do anything you want with the array, one of the easiest methods to go trough it is a foreach:
-<pre>foreach($aResult AS $a) {
+$aResult = $dbLink->query('SELECT id,username FROM users WHERE id = ? AND username = ?',$id_user,$username);
+foreach($aResult AS $a) {
   echo 'The id of the user named '.$a['username'].' is: '.$a['id']."\n";
-}</pre>
-* In case of large queries, don't forget to unset the results in order to save PHP's memory for later: <code>unset($aResult);</code>
+}
+</pre>
+* Congratulations! <code>$aResult</code> has the result of your query!
+* In case of large queries, don't forget to unset the results in order to save memory for later: <code>unset($aResult);</code>
 * **Please see index.php for more options and advanced usage**
 
 Including with composer
