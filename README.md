@@ -38,12 +38,12 @@ $id_user = 23;
 $username = 'unreal4u';
 $aResult = $dbLink->query('SELECT id,username FROM users WHERE id = ? AND username = ?',$id_user,$username);</pre>
 
-* Congratulations! `$aResult` haves the result of your query!
+* Congratulations! <code>$aResult</code> has the result of your query!
 * Now you can do anything you want with the array, one of the easiest methods to go trough it is a foreach:
 <pre>foreach($aResult AS $a) {
   echo 'The id of the user named '.$a['username'].' is: '.$a['id']."\n";
 }</pre>
-* In case of large queries, don't forget to unset the results in order to save PHP's memory for later: `unset($aResult);`
+* In case of large queries, don't forget to unset the results in order to save PHP's memory for later: <code>unset($aResult);</code>
 * **Please see index.php for more options and advanced usage**
 
 Including with composer
@@ -77,26 +77,22 @@ Version History
 * 4.0.0:
     * No longer is XML-based cache used, cacheManager class (see my other classes) is now in charge of doing all that job!
     * Better exception handling
-
 * 4.0.1:
     * Support for multi-connections
     * Better documentation
     * Code cleanup and some minor improvements
-
 * 4.1.0:
     * Made class compatible with composer.phar and PSR-0 autoloader standards
     * Some minor fixes in documentation and code
-
 * 4.1.1:
     * Fixes
     * Better documentation
-
 * 4.1.2:
     * Totally forgot about PSR-0 underscore standard. The class is now refactored to wipe out the usage of underscore in the class's name
-
 * 4.1.3:
     * Better documentation
     * Year change
+
 * 5.0.0:
     * Mayor revision of the code and several fixes, updated to comply with (at least) PSR-2
     * [BC] Result array is now an SplFixedArray, uses less memory and should be a bit faster as well
@@ -105,6 +101,7 @@ Version History
     * [BC] Class now throws exceptions in it's proper namespace
         * unreal4u\databaseException is now unreal4u\exceptions\database
         * unreal4u\queryException is now unreal4u\exceptions\query
+    * Fixed and updated documentation
 
 Contact the author
 -------
