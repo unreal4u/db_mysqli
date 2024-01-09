@@ -1,6 +1,11 @@
 dbmysqli.php
 ======
 
+# Important: deprecated
+
+Please don't use this code... like ever. WAY WAY WAAAAY better options exist nowadays. I'm archiving this repository as well.
+
+
 Credits
 --------
 
